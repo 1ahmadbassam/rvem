@@ -3,15 +3,35 @@
 
 #include <stdint.h>
 
-static inline uint32_t rv_mulw(const uint32_t a, const uint32_t b) {
-	return a * b;
-}
-
 static inline reg_t rv_mul(const reg_t a, const reg_t b) {
 	return a * b;
 }
 
 #ifdef RV64M
+static inline uint32_t rv_mulw(const uint32_t a, const uint32_t b) {
+	return a * b;
+}
+static inline int32_t rv_divw(const int32_t a, const int32_t b) {
+	if (b == 0) return (int32_t)-1;
+	if ((a == INT32_MIN) && (b == (int32_t) -1)) return (int32_t) INT32_MIN;
+	return a / b;
+}
+
+static inline uint32_t rv_divuw(const uint32_t a, const uint32_t b) {
+	if (b == 0) return UINT32_MAX;
+	return a / b;
+}
+
+static inline int32_t rv_remw(const int32_t a, const int32_t b) {
+	if (b == 0) return a;
+	if ((a == INT32_MIN) && (b == (int32_t) -1)) return 0;
+	return a % b;
+}
+
+static inline uint32_t rv_remuw(const uint32_t a, const uint32_t b) {
+	if (b == 0) return a;
+	return a % b;
+}
 static inline uint64_t mulhudw(const uint64_t a, const uint64_t b) {
 	const uint64_t a_lo = (uint32_t)a, a_hi = a >> 32;
     const uint64_t b_lo = (uint32_t)b, b_hi = b >> 32;
@@ -48,15 +68,15 @@ static inline reg_t rv_mulhu(const reg_t a, const reg_t b) {
 #else /* _MSC_VER */
 #if defined(__GNUC__) || defined(__clang__)
 static inline sreg_t rv_mulh(const sreg_t a, const sreg_t b) {
-	return (sreg_t) ((__uint128) ((__int128) a * (__int128) b) >> 64);
+	return (sreg_t) ((unsigned __int128) ((__int128) a * (__int128) b) >> 64);
 }
 
 static inline sreg_t rv_mulhsu(const sreg_t a, const reg_t b) {
-	return (sreg_t) ((__uint128) ((__int128) a * (__int128) b) >> 64);
+	return (sreg_t) ((unsigned __int128) ((__int128) a * (__int128) b) >> 64);
 }
 
 static inline reg_t rv_mulhu(const reg_t a, const reg_t b) {
-	return (reg_t) (((__uint128) a * (__uint128) b) >> 64);
+	return (reg_t) (((unsigned __int128) a * (unsigned __int128) b) >> 64);
 }
 #else /* defined(__GNUC__) || defined(__clang__) */
 /* fall back to software computation */
@@ -92,5 +112,27 @@ static inline reg_t rv_mulhu(const reg_t a, const reg_t b) {
 	return (reg_t) (((uint64_t) a * (uint64_t) b) >> 32);
 }
 #endif /* RV64M */
+
+static inline sreg_t rv_div(const sreg_t a, const sreg_t b) {
+	if (b == 0) return (sreg_t)-1;
+	if ((a == SREG_MIN) && (b == (sreg_t) -1)) return (sreg_t) SREG_MIN;
+	return a / b;
+}
+
+static inline reg_t rv_divu(const reg_t a, const reg_t b) {
+	if (b == 0) return REG_MAX;
+	return a / b;
+}
+
+static inline sreg_t rv_rem(const sreg_t a, const sreg_t b) {
+	if (b == 0) return a;
+	if ((a == SREG_MIN) && (b == (sreg_t) -1)) return 0;
+	return a % b;
+}
+
+static inline reg_t rv_remu(const reg_t a, const reg_t b) {
+	if (b == 0) return a;
+	return a % b;
+}
 
 #endif /* MUL_H */

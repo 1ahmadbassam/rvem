@@ -60,7 +60,7 @@
 #define BRANCH_GEU		0x7
 
 #define ESYS			0x0
-#define ECALL(uimm)		(uimm==(reg_t)1)
+#define EBREAK(uimm)	(uimm==(reg_t)1)
 #define CSR_RW			0x1
 #define CSR_RS			0x2
 #define CSR_RC			0x3

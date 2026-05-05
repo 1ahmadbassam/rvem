@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#define MAX_CYCLES			10000000
+#define MAX_CYCLES			1000000000
 
 #define ROM_START			0x0
 #define RAM_START 			0x20000000U
@@ -19,7 +19,9 @@
 #ifdef RV64
 typedef uint64_t			reg_t;
 typedef int64_t				sreg_t;
+#define REG_MIN				0
 #define REG_MAX				UINT64_MAX
+#define SREG_MIN			INT64_MIN
 #define SREG_MAX			INT64_MAX
 #define XLEN	 			64
 #define SIGN_BIT			SIGN_BIT_DWORD
@@ -29,7 +31,9 @@ typedef int64_t				sreg_t;
 #else /* RV64 */
 typedef uint32_t			reg_t;
 typedef int32_t				sreg_t;
+#define REG_MIN				0
 #define REG_MAX				UINT32_MAX
+#define SREG_MIN			INT32_MIN
 #define SREG_MAX			INT32_MAX
 #define XLEN	 			32
 #define SIGN_BIT 			SIGN_BIT_WORD

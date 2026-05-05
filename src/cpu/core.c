@@ -52,16 +52,16 @@ bool process_instr(const uint32_t raw_instr) {
 						cpu.regfile[instr.rd] = rv_mulhu(cpu.regfile[instr.rs1], cpu.regfile[instr.rs2]);
 						break;
 					case M_DIV:
-						cpu.regfile[instr.rd] = (sreg_t) cpu.regfile[instr.rs1] / (sreg_t) cpu.regfile[instr.rs2];
+						cpu.regfile[instr.rd] = rv_div((sreg_t) cpu.regfile[instr.rs1], (sreg_t) cpu.regfile[instr.rs2]);
 						break;
 					case M_DIVU:
-						cpu.regfile[instr.rd] = cpu.regfile[instr.rs1] / cpu.regfile[instr.rs2];
+						cpu.regfile[instr.rd] = rv_divu(cpu.regfile[instr.rs1], cpu.regfile[instr.rs2]);
 						break;
 					case M_REM:
-						cpu.regfile[instr.rd] = (sreg_t) cpu.regfile[instr.rs1] % (sreg_t) cpu.regfile[instr.rs2];
+						cpu.regfile[instr.rd] = rv_rem((sreg_t) cpu.regfile[instr.rs1], (sreg_t) cpu.regfile[instr.rs2]);
 						break;
 					case M_REMU:
-						cpu.regfile[instr.rd] = cpu.regfile[instr.rs1] % cpu.regfile[instr.rs2];
+						cpu.regfile[instr.rd] = rv_remu(cpu.regfile[instr.rs1], cpu.regfile[instr.rs2]);
 						break;
 					default:
 						break;
@@ -163,13 +163,16 @@ bool process_instr(const uint32_t raw_instr) {
 						cpu.regfile[instr.rd] = (sreg_t) (int32_t) rv_mulw((uint32_t) cpu.regfile[instr.rs1], (uint32_t) cpu.regfile[instr.rs2]);
 						break;
 					case M_DIV:
-						printf("[warn] unimplemented function called: DIVW\n");
+						cpu.regfile[instr.rd] = (sreg_t) rv_divw((int32_t) cpu.regfile[instr.rs1], (int32_t) cpu.regfile[instr.rs2]);
+						break;
+					case M_DIVU:
+						cpu.regfile[instr.rd] = (sreg_t) (int32_t) rv_divuw((uint32_t) cpu.regfile[instr.rs1], (uint32_t) cpu.regfile[instr.rs2]);
 						break;
 					case M_REM:
-						printf("[warn] unimplemented function called: REMW\n");
+						cpu.regfile[instr.rd] = (sreg_t) rv_remw((int32_t) cpu.regfile[instr.rs1], (int32_t) cpu.regfile[instr.rs2]);
 						break;
 					case M_REMU:
-						printf("[warn] unimplemented function called REMUW\n");
+						cpu.regfile[instr.rd] = (sreg_t) (int32_t) rv_remuw((uint32_t) cpu.regfile[instr.rs1], (uint32_t) cpu.regfile[instr.rs2]);
 						break;
 					default:
 						break;
@@ -216,7 +219,7 @@ bool process_instr(const uint32_t raw_instr) {
 					cpu.regfile[instr.rd] = (sreg_t) (int32_t) ((uint32_t) cpu.regfile[instr.rs1] << (instr.imms.imm & SHIFT_MAX_WORD));
 					break;
 				case ALU_SRL:
-					if (GET_FUNCT7_BIT5(raw_instr))	/* SRA */
+					if (CHECK_FUNCT7_BIT5(raw_instr))	/* SRA */
 						cpu.regfile[instr.rd] = (sreg_t) SRAW((uint32_t) cpu.regfile[instr.rs1], instr.imms.imm & SHIFT_MAX_WORD);
 					else
 						cpu.regfile[instr.rd] = (sreg_t) (int32_t) ((uint32_t) cpu.regfile[instr.rs1] >> (instr.imms.imm & SHIFT_MAX_WORD));
@@ -340,8 +343,12 @@ bool process_instr(const uint32_t raw_instr) {
 				PERF_MODEL_HAZARD(perf_model, instr);
 			switch(op) {
 				case(ESYS):
-					if (!ECALL(instr.imms.uimm)) {
+					if (EBREAK(instr.imms.uimm)) {
+						printf("[err] ebreak called. debug breakpoint reached.\n");
+						exec_continue=false;
+					} else {
 						if(cpu.regfile[A0] == E_EXIT) {
+							printf("[info] program exited gracefully (ecall with a0=10).\n");
 							exec_continue = false;
 						} else if (cpu.regfile[A0] == E_CHAR) {
 							/* simple way to print for now */

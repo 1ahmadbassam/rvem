@@ -62,16 +62,17 @@ ifeq ($(M_EXT), 1)
 	MARCH := $(MARCH)m
 endif
 
+# CSR
+ifeq ($(shell $(CC) -march=$(MARCH)_zicsr -mabi=$(MABI) -E - < /dev/null > /dev/null 2>&1 && echo std),std)
+    MARCH := $(MARCH)_zicsr
+endif
+
 # guest configuration
 LDSCRIPT = $(BSP_DIR)/link.ld
 CRT_ASM  = $(BSP_DIR)/crt0.S
 CFLAGS   = -march=$(MARCH) -mabi=$(MABI) -ffreestanding -nostdlib -O2
+CLIBS	 = 
 LIBGCC   = $(shell $(CC) -march=$(MARCH) -mabi=$(MABI) -print-libgcc-file-name 2>/dev/null)
-ifeq ($(RV64), 1)
-CLIBS    =
-else
-CLIBS    = $(LIBGCC)
-endif
 
 # artifacts
 C_SRC     = $(wildcard $(TB_DIR)/*.c)
@@ -125,7 +126,7 @@ $(ELF_FILE): $(C_SRC) $(CRT_ASM) $(LDSCRIPT) $(LIBRV_ARCHIVE) | test_dirs phase2
 		exit 1; \
 	fi
 	@echo "  CC/LD   $@"
-	@$(CC) $(CFLAGS) -I$(LIBRV_DIR) -T $(LDSCRIPT) $(CRT_ASM) $(C_SRC) $(LIBRV_ARCHIVE) $(CLIBS) -o $(ELF_FILE)
+	@$(CC) $(CFLAGS) -I$(LIBRV_DIR) -T $(LDSCRIPT) $(CRT_ASM) $(C_SRC) $(CLIBS) $(LIBRV_ARCHIVE) $(LIBGCC) -o $(ELF_FILE)
 
 # 4. extract raw binary ROM
 $(BIN_FILE): $(ELF_FILE)
