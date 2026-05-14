@@ -14,7 +14,7 @@
 
 #define SIGN_BIT_WORD 		0x80000000
 #define SHIFT_MAX_WORD		0x1F
-#define SIGN_BIT_DWORD 		0x8000000000000000ULL
+#define SIGN_BIT_DWORD 		SUFFIX_U64(0x8000000000000000)
 #define SHIFT_MAX_DWORD		0x3F
 #ifdef RV64
 typedef uint64_t			reg_t;
@@ -26,7 +26,7 @@ typedef int64_t				sreg_t;
 #define XLEN	 			64
 #define SIGN_BIT			SIGN_BIT_DWORD
 #define SHIFT_MAX			SHIFT_MAX_DWORD
-#define BASE_SHIFT			1ULL
+#define BASE_SHIFT			SUFFIX_U64(1)
 #define HEX_FMT				"%llX"
 #else /* RV64 */
 typedef uint32_t			reg_t;

@@ -29,7 +29,7 @@ static bool load_rom_binary(const char *filename) {
 int main(int argc, const char *argv[]) {
 	bool instr_loop = true;
 	double elapsed;
-	struct timespec start, end;
+	clock_t start, end;
 
 	if (argc != 2) {
 		print_usage(argv[0]);
@@ -39,7 +39,7 @@ int main(int argc, const char *argv[]) {
 	if (!load_rom_binary(argv[1]))
 		return 1;
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    start = clock();
 	while (instr_loop && mcycle < MAX_CYCLES) {
 		reg_t bus_val = 0;
 		uint32_t instr;
@@ -49,11 +49,14 @@ int main(int argc, const char *argv[]) {
 			return 1;
 		instr_loop = process_instr(instr);
 	}
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1000000000.0;
+	end = clock();
+	elapsed = (double)(end - start) / CLOCKS_PER_SEC;
 	if (mcycle < MAX_CYCLES) {
-		printf("[info] total cycles: %llu.\n", mcycle);
-		printf("[info] frequency: %.2lfMHz.\n", mcycle/(elapsed*1000000));
+		printf("[info] total cycles: "FMT_U64".\n", mcycle);
+		if (elapsed > 0)
+			printf("[info] frequency: %.2lf MHz.\n", UINT64_DOUBLE_DIV(mcycle, elapsed) / 1000000.0);
+		else
+			printf("[info] frequency: inf MHz.\n");
 	} else {
 		printf("[info] program hit hard cycle limit without exiting.\n");
 	}

@@ -360,26 +360,26 @@ bool process_instr(const uint32_t raw_instr) {
 				case(CSR_RWI): {
 					const reg_t target = is_imm ? instr.rs1 : cpu.regfile[instr.rs1];
 					if (instr.rd != 0)
-						cpu.regfile[instr.rd] = read_csr(instr.imms.uimm);
-					write_csr(instr.imms.uimm, target);
+						cpu.regfile[instr.rd] = read_csr((unsigned int) instr.imms.uimm);
+					write_csr((unsigned int) instr.imms.uimm, target);
 					break;
 				}
 				case(CSR_RS):
 				case(CSR_RSI): {
 					const reg_t target = is_imm ? instr.rs1 : cpu.regfile[instr.rs1];
-					const reg_t csrval = read_csr(instr.imms.uimm);
+					const reg_t csrval = read_csr((unsigned int) instr.imms.uimm);
 					cpu.regfile[instr.rd] = csrval;
 					if (instr.rs1 != 0)
-						write_csr(instr.imms.uimm, csrval | target);
+						write_csr((unsigned int) instr.imms.uimm, csrval | target);
 					break;
 				}
 				case(CSR_RC):
 				case(CSR_RCI): {
 					const reg_t target = is_imm ? instr.rs1 : cpu.regfile[instr.rs1];
-					const reg_t csrval = read_csr(instr.imms.uimm);
+					const reg_t csrval = read_csr((unsigned int) instr.imms.uimm);
 					cpu.regfile[instr.rd] = csrval;
 					if (instr.rs1 != 0)
-						write_csr(instr.imms.uimm, csrval & ~target);
+						write_csr((unsigned int) instr.imms.uimm, csrval & ~target);
 					break;
 				}
 			}
