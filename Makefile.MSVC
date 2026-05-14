@@ -1,0 +1,125 @@
+# --- Configuration Options ---
+!IFNDEF RV64
+RV64 = 0
+!ENDIF
+
+!IFNDEF M_EXT
+M_EXT = 1
+!ENDIF
+
+# --- Directories ---
+BUILDDIR = build
+OUTDIR = $(BUILDDIR)\bin
+OBJDIR = $(BUILDDIR)\obj
+GENDIR = $(OBJDIR)\generated
+
+# --- Preprocessor Definitions ---
+DEFINES = /DWIN32
+
+!IF "$(RV64)" == "1"
+DEFINES = $(DEFINES) /DRV64
+!IF "$(M_EXT)" == "1"
+DEFINES = $(DEFINES) /DRV64M
+!ENDIF
+!ELSE
+DEFINES = $(DEFINES) /DRV32
+!IF "$(M_EXT)" == "1"
+DEFINES = $(DEFINES) /DRV32M
+!ENDIF
+!ENDIF
+
+# --- Compiler Configuration ---
+!IF [echo MSVC_VER = _MSC_VER> ver.tmp] == 0
+!IF [cl /nologo /EP ver.tmp > msvc_ver.mak] == 0
+!INCLUDE msvc_ver.mak
+!ENDIF
+!IF [del ver.tmp msvc_ver.mak] == 0
+!ENDIF
+!ENDIF
+
+!IF $(MSVC_VER) >= 1400
+DEFINES = $(DEFINES) /D_CRT_SECURE_NO_WARNINGS
+!ENDIF
+
+# --- Compiler and Linker Flags ---
+CFLAGS = /nologo /W3 /WX /O2 $(DEFINES) /Iinc /I$(GENDIR)
+LDFLAGS = /nologo
+
+# --- Target and Objects ---
+TARGET = $(OUTDIR)\rvem.exe
+
+OBJS = \
+    $(OBJDIR)\main.obj \
+    $(OBJDIR)\core.obj \
+    $(OBJDIR)\csr.obj
+
+# --- Build Rules ---
+all: setup generated_headers $(TARGET)
+
+setup:
+    @if not exist $(OUTDIR) mkdir $(OUTDIR)
+    @if not exist $(OBJDIR) mkdir $(OBJDIR)
+    @if not exist $(GENDIR) mkdir $(GENDIR)
+
+generated_headers: $(GENDIR)\stdint.h
+
+$(GENDIR)\stdint.h:
+    @echo #ifndef _STDINT_H > $@
+    @echo #define _STDINT_H >> $@
+    @echo. >> $@
+    @echo #include ^<limits.h^> >> $@
+    @echo. >> $@
+    @echo #if UCHAR_MAX == 0xFF >> $@
+    @echo typedef signed char int8_t; >> $@
+    @echo typedef unsigned char uint8_t; >> $@
+    @echo #define INT8_MIN (-128) >> $@
+    @echo #define INT8_MAX (127) >> $@
+    @echo #define UINT8_MAX (255) >> $@
+    @echo #endif >> $@
+    @echo. >> $@
+    @echo #if USHRT_MAX == 0xFFFF >> $@
+    @echo typedef short int16_t; >> $@
+    @echo typedef unsigned short uint16_t; >> $@
+    @echo #define INT16_MIN (-32768) >> $@
+    @echo #define INT16_MAX (32767) >> $@
+    @echo #define UINT16_MAX (65535) >> $@
+    @echo #endif >> $@
+    @echo. >> $@
+    @echo #if UINT_MAX == 0xFFFFFFFF >> $@
+    @echo typedef int int32_t; >> $@
+    @echo typedef unsigned int uint32_t; >> $@
+    @echo #define INT32_MIN (-2147483647 - 1) >> $@
+    @echo #define INT32_MAX (2147483647) >> $@
+    @echo #define UINT32_MAX (4294967295U) >> $@
+    @echo #elif ULONG_MAX == 0xFFFFFFFF >> $@
+    @echo typedef long int32_t; >> $@
+    @echo typedef unsigned long uint32_t; >> $@
+    @echo #define INT32_MIN (-2147483647L - 1) >> $@
+    @echo #define INT32_MAX (2147483647L) >> $@
+    @echo #define UINT32_MAX (4294967295UL) >> $@
+    @echo #endif >> $@
+    @echo. >> $@
+    @echo typedef __int64 int64_t; >> $@
+    @echo typedef unsigned __int64 uint64_t; >> $@
+    @echo #define INT64_MIN (-9223372036854775807i64 - 1) >> $@
+    @echo #define INT64_MAX (9223372036854775807i64) >> $@
+    @echo #define UINT64_MAX (18446744073709551615ui64) >> $@
+    @echo. >> $@
+    @echo #endif /* _STDINT_H */ >> $@
+
+$(TARGET): $(OBJS)
+    link $(LDFLAGS) /out:$@ $(OBJS)
+
+# --- File Dependencies ---
+$(OBJDIR)\main.obj: src\main.c $(GENDIR)\stdint.h
+    cl $(CFLAGS) /c /Fo$@ src\main.c
+
+$(OBJDIR)\core.obj: src\cpu\core.c $(GENDIR)\stdint.h
+    cl $(CFLAGS) /c /Fo$@ src\cpu\core.c
+
+$(OBJDIR)\csr.obj: src\cpu\csr.c $(GENDIR)\stdint.h
+    cl $(CFLAGS) /c /Fo$@ src\cpu\csr.c
+
+# --- Cleanup ---
+clean:
+    @if exist $(BUILDDIR) rmdir /s /q $(BUILDDIR)

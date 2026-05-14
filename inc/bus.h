@@ -7,7 +7,6 @@
 #include "riscv.h"
 #include "cpu.h"
 #include "arch.h"
-#include "bus.h"
 
 static inline void bus_read(reg_t addr, unsigned char op, reg_t *val) {
 	const unsigned char range = ((op == MEM_H || op == MEM_HU) ? 1
