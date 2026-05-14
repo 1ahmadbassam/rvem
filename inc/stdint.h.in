@@ -49,7 +49,7 @@ typedef unsigned long long uint64_t;
 #define INT64_MIN          (-9223372036854775807LL - 1)
 #define INT64_MAX          (9223372036854775807LL)
 #define UINT64_MAX         (18446744073709551615ULL)
-#elif @SIZEOF_INT64@ == 8
+#elif defined(WIN32) && !(defined(__CYGWIN__) || defined(__MINGW32__))
 typedef signed __int64     int64_t;
 typedef unsigned __int64   uint64_t;
 #define INT64_MIN          (-9223372036854775807i64 - 1)
