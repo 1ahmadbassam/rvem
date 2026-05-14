@@ -27,7 +27,7 @@ typedef int64_t				sreg_t;
 #define SIGN_BIT			SIGN_BIT_DWORD
 #define SHIFT_MAX			SHIFT_MAX_DWORD
 #define BASE_SHIFT			SUFFIX_U64(1)
-#define HEX_FMT				"%llX"
+#define HEX_FMT				FMT_H64
 #else /* RV64 */
 typedef uint32_t			reg_t;
 typedef int32_t				sreg_t;

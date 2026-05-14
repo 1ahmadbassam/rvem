@@ -29,11 +29,13 @@ typedef int bool;
 #if defined(WIN32) && !(defined(__CYGWIN__) || defined(__MINGW32__))
     #define FMT_I64 "%I64"
     #define FMT_U64 "%I64u"
+    #define FMT_H64 "%I64X"
     #define SUFFIX_I64(num) num##i64
     #define SUFFIX_U64(num) num##ui64 
 #else /* defined(WIN32) && !(defined(__CYGWIN__) || defined(__MINGW32__)) */
     #define FMT_I64 "%lld"
     #define FMT_U64 "%llu"
+    #define FMT_H64 "%llX"
     #define SUFFIX_I64(num) num##LL
     #define SUFFIX_U64(num) num##LLU
 #endif /* defined(WIN32) && !(defined(__CYGWIN__) || defined(__MINGW32__)) */
